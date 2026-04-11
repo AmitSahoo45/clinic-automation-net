@@ -16,10 +16,11 @@ Task 1 is implemented:
 ## Run Locally
 
 1. Start the backend API from Visual Studio or with `dotnet run` from the API project.
-2. Make sure the API is reachable at `http://localhost:5235`, or change `VITE_API_PROXY_TARGET` if your local port is different.
-3. From this folder, run `npm install` if needed.
-4. Start the frontend with `npm run dev`.
-5. Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
+2. If you are running the Visual Studio `https` profile, the frontend proxy should target `https://localhost:7145`.
+3. If you are running the API on a different local URL, copy `.env.example` to `.env.local` and update `VITE_API_PROXY_TARGET`.
+4. From this folder, run `npm install` if needed.
+5. Start the frontend with `npm run dev`.
+6. Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
 
 ## Environment
 
@@ -27,7 +28,7 @@ Copy `.env.example` to `.env.local` if you want to override defaults.
 
 - `VITE_APP_NAME`: frontend display name
 - `VITE_API_BASE_URL`: API base path used by the browser, defaults to `/api`
-- `VITE_API_PROXY_TARGET`: local backend target for the Vite dev proxy
+- `VITE_API_PROXY_TARGET`: local backend target for the Vite dev proxy, defaults to `https://localhost:7145`
 
 ## Current Routes
 

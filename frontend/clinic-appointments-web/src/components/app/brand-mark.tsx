@@ -22,7 +22,7 @@ export function BrandMark({ compact = false, className }: BrandMarkProps) {
           Clinic Appointments
         </div>
         <div className="text-xs uppercase tracking-[0.28em] text-white/72">
-          scheduling workspace
+          care coordination
         </div>
       </div>
     </div>

@@ -32,16 +32,16 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen px-4 py-4 lg:px-8 lg:py-6">
       <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[290px_1fr]">
-        <aside className="rounded-[2rem] bg-[linear-gradient(180deg,#123d3a,#0f2b3f)] p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.2)]">
+        <aside className="rounded-4xl bg-[linear-gradient(180deg,#123d3a,#0f2b3f)] p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.2)]">
           <div className="flex h-full flex-col gap-8">
             <BrandMark compact />
 
-            <div className="rounded-[1.5rem] border border-white/12 bg-white/8 p-5 backdrop-blur">
+            <div className="rounded-3xl border border-white/12 bg-white/8 p-5 backdrop-blur">
               <Badge className="border-transparent bg-white/14 text-white" variant={badgeVariant}>
                 {user.role}
               </Badge>
               <p className="mt-4 text-sm uppercase tracking-[0.24em] text-white/60">active user</p>
-              <p className="mt-2 text-lg font-semibold text-white">{user.email}</p>
+              <p className="mt-2 text-sm font-semibold text-white break-all">{user.email}</p>
               <p className="mt-2 text-sm leading-6 text-white/72">
                 Route guards are now role-aware, so this shell only renders the correct workspace.
               </p>
@@ -54,7 +54,7 @@ export function DashboardLayout() {
                     cn(
                       buttonVariants({ variant: 'ghost', size: 'lg' }),
                       'justify-start rounded-2xl text-white hover:bg-white/12 hover:text-white',
-                      isActive && 'bg-white text-slate-900 hover:bg-white',
+                      isActive && 'bg-white text-slate-900 hover:bg-white/80 hover:text-slate-900',
                     )
                   }
                   key={to}
