@@ -384,12 +384,6 @@ export function AuthScreen({ mode }: AuthScreenProps) {
         </div>
       </div>
 
-      {attemptedPath ? (
-        <div className="rounded-[1.4rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-          Sign in to continue to <code>{attemptedPath}</code>.
-        </div>
-      ) : null}
-
       <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
         <Card className="border-border/90">
           <CardContent className="space-y-6 p-6 md:p-7">

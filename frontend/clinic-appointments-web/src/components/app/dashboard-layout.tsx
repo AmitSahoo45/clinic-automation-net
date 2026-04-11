@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, LogOut, Stethoscope, UserRound } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, LogOut, Stethoscope } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { BrandMark } from '@/components/app/brand-mark'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,6 @@ const doctorNavigation = [
 
 const patientNavigation = [
   { to: '/patient/doctors', label: 'Find a Doctor', icon: Stethoscope },
-  { to: '/patient/doctors/demo', label: 'Doctor Detail', icon: UserRound },
   { to: '/patient/appointments', label: 'My Appointments', icon: CalendarDays },
 ]
 
@@ -40,10 +39,10 @@ export function DashboardLayout() {
               <Badge className="border-transparent bg-white/14 text-white" variant={badgeVariant}>
                 {user.role}
               </Badge>
-              <p className="mt-4 text-sm uppercase tracking-[0.24em] text-white/60">active user</p>
+              <p className="mt-4 text-sm uppercase tracking-[0.24em] text-white/60">signed in as</p>
               <p className="mt-2 text-sm font-semibold text-white break-all">{user.email}</p>
               <p className="mt-2 text-sm leading-6 text-white/72">
-                Route guards are now role-aware, so this shell only renders the correct workspace.
+                Move between appointments, schedules, and account details from one secure clinic portal.
               </p>
             </div>
 
@@ -66,14 +65,13 @@ export function DashboardLayout() {
               ))}
             </nav>
 
-            <div className="mt-auto rounded-[1.5rem] border border-white/12 bg-white/6 p-4 text-sm leading-6 text-white/70">
-              This is the shared shell for Phase 6. Task 2 will turn the auth pages into live forms,
-              and the next vertical slices will plug real data into these routes.
+            <div className="mt-auto rounded-3xl border border-white/12 bg-white/6 p-4 text-sm leading-6 text-white/70">
+              Designed to keep daily appointment work simple for patients and clinicians.
             </div>
           </div>
         </aside>
 
-        <main className="rounded-[2rem] border border-border/80 bg-card/90 p-5 shadow-[0_24px_80px_rgba(22,56,54,0.14)] backdrop-blur md:p-7">
+        <main className="rounded-4xl border border-border/80 bg-card/90 p-5 shadow-[0_24px_80px_rgba(22,56,54,0.14)] backdrop-blur md:p-7">
           <div className="flex flex-col gap-4 border-b border-border/80 pb-5 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <p className="text-sm uppercase tracking-[0.28em] text-muted-foreground">
@@ -81,8 +79,8 @@ export function DashboardLayout() {
               </p>
               <h1 className="font-serif text-3xl tracking-tight text-foreground md:text-4xl">
                 {user.role === 'Doctor'
-                  ? 'Ready for profile, schedule, and appointment screens'
-                  : 'Ready for browse, book, and appointment screens'}
+                  ? 'Manage your day with clarity'
+                  : 'Plan and manage your visits'}
               </h1>
             </div>
             <Button className="self-start" onClick={signOut} variant="outline">
