@@ -3,6 +3,7 @@ using ClinicAppointments.Api.Auth;
 using ClinicAppointments.Api.Configuration;
 using ClinicAppointments.Api.Doctors;
 using ClinicAppointments.Api.Security;
+using ClinicAppointments.Api.TimeSlots;
 using ClinicAppointments.Core.Enums;
 using ClinicAppointments.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,6 +33,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDoctorDirectoryService, DoctorDirectoryService>();
 builder.Services.AddScoped<IDoctorProfileService, DoctorProfileService>();
 builder.Services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
+builder.Services.AddScoped<IDoctorAvailabilityService, DoctorAvailabilityService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

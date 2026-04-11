@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ClinicAppointments.Api.Auth;
 using ClinicAppointments.Api.Common;
 using ClinicAppointments.Api.Doctors;
+using ClinicAppointments.Api.TimeSlots;
 using ClinicAppointments.Core.DTOs.Doctors;
 using ClinicAppointments.Core.DTOs.Schedules;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,8 @@ namespace ClinicAppointments.Api.Controllers;
 public sealed class DoctorsController(
     IDoctorProfileService doctorProfileService,
     IDoctorScheduleService doctorScheduleService,
-    IDoctorDirectoryService doctorDirectoryService) : ControllerBase
+    IDoctorDirectoryService doctorDirectoryService,
+    IDoctorAvailabilityService doctorAvailabilityService) : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet]
@@ -22,6 +24,25 @@ public sealed class DoctorsController(
     {
         var doctors = await doctorDirectoryService.GetDoctorsAsync(specialization, cancellationToken);
         return Ok(doctors);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{doctorId:guid}/available-slots")]
+    public async Task<IActionResult> GetAvailableSlots(
+        Guid doctorId,
+        [FromQuery] DateOnly? date,
+        [FromQuery] DateOnly? startDate,
+        [FromQuery] DateOnly? endDate,
+        CancellationToken cancellationToken)
+    {
+        var result = await doctorAvailabilityService.GetAvailableSlotsAsync(
+            doctorId,
+            date,
+            startDate,
+            endDate,
+            cancellationToken);
+
+        return ToActionResult(result);
     }
 
     [Authorize(Policy = AuthorizationPolicies.DoctorOnly)]
@@ -147,6 +168,19 @@ public sealed class DoctorsController(
         if (result.Succeeded)
         {
             return NoContent();
+        }
+
+        return StatusCode(result.StatusCode, new
+        {
+            Message = result.ErrorMessage
+        });
+    }
+
+    private IActionResult ToActionResult(TimeSlotAvailabilityResult result)
+    {
+        if (result.Succeeded)
+        {
+            return Ok(result.Response);
         }
 
         return StatusCode(result.StatusCode, new
