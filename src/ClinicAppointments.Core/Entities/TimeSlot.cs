@@ -20,5 +20,5 @@ public class TimeSlot : BaseEntity
 
     public DoctorSchedule? DoctorSchedule { get; set; }
 
-    public Appointment? Appointment { get; set; }
+    public ICollection<Appointment> Appointments { get; set; } = [];
 }

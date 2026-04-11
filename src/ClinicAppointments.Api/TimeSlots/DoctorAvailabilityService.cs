@@ -54,7 +54,6 @@ public sealed class DoctorAvailabilityService(ApplicationDbContext dbContext) : 
             item => item);
 
         var existingSlots = await dbContext.TimeSlots
-            .Include(item => item.Appointment)
             .Where(item => item.DoctorId == doctorId
                 && item.SlotDate >= rangeStart
                 && item.SlotDate <= rangeEnd)
@@ -181,6 +180,5 @@ public sealed class DoctorAvailabilityService(ApplicationDbContext dbContext) : 
         _ => throw new ArgumentOutOfRangeException(nameof(dayOfWeek), dayOfWeek, "Unsupported day of week.")
     };
 
-    private static bool IsAvailable(TimeSlot slot) =>
-        !slot.IsBooked && (slot.Appointment is null || slot.Appointment.Status == AppointmentStatus.Cancelled);
+    private static bool IsAvailable(TimeSlot slot) => !slot.IsBooked;
 }

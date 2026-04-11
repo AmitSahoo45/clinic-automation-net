@@ -28,9 +28,6 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.Property(appointment => appointment.UpdatedAtUtc)
             .IsRequired();
 
-        builder.HasIndex(appointment => appointment.TimeSlotId)
-            .IsUnique();
-
         builder.HasOne(appointment => appointment.Doctor)
             .WithMany(doctor => doctor.Appointments)
             .HasForeignKey(appointment => appointment.DoctorId)
@@ -42,8 +39,8 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(appointment => appointment.TimeSlot)
-            .WithOne(timeSlot => timeSlot.Appointment)
-            .HasForeignKey<Appointment>(appointment => appointment.TimeSlotId)
+            .WithMany(timeSlot => timeSlot.Appointments)
+            .HasForeignKey(appointment => appointment.TimeSlotId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
