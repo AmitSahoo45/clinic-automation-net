@@ -32,5 +32,5 @@ export async function registerWithRole(
 export function getAuthSuccessMessage(mode: 'login' | 'register', payload: AuthResponsePayload) {
   const action = mode === 'login' ? 'Welcome back' : 'Welcome'
   const roleLabel = payload.role === 'Doctor' ? 'doctor' : 'patient'
-  return `${action}, ${roleLabel}. Your workspace is ready.`
+  return `${action}, ${roleLabel}. Your account is ready.`
 }

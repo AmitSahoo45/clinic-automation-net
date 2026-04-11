@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CalendarDays, Clock3, NotebookPen, Phone } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CalendarDays, Clock3, NotebookPen, Phone } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { StatePanel } from '@/components/app/state-panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -62,29 +63,37 @@ export function PatientDoctorDetailPage() {
   const slots = slotsQuery.data ?? []
   const selectedSlot = slots.find((slot) => slot.id === selectedTimeSlotId) ?? null
 
-  if (doctorQuery.isLoading) {
+  if (!doctorId) {
     return (
-      <Card>
-        <CardContent className="p-10 text-center text-muted-foreground">
-          Loading doctor details...
-        </CardContent>
-      </Card>
+      <StatePanel
+        description="The doctor page could not be opened. Please return to the directory and choose a doctor again."
+        icon={AlertCircle}
+        title="Doctor unavailable"
+        tone="warning"
+      >
+        <Link className={cn(buttonVariants({ variant: 'outline' }))} to="/patient/doctors">
+          Back to directory
+        </Link>
+      </StatePanel>
     )
+  }
+
+  if (doctorQuery.isLoading) {
+    return <StatePanel description="Loading doctor details and appointment availability." loading title="Loading doctor" />
   }
 
   if (doctorQuery.isError || !doctor) {
     return (
-      <Card>
-        <CardContent className="space-y-4 p-10 text-center">
-          <p className="font-serif text-3xl text-foreground">Doctor not found</p>
-          <p className="text-sm leading-7 text-muted-foreground">
-            The doctor profile you requested is not available right now.
-          </p>
-          <Link className={cn(buttonVariants({ variant: 'outline' }))} to="/patient/doctors">
-            Back to directory
-          </Link>
-        </CardContent>
-      </Card>
+      <StatePanel
+        description="The doctor profile you requested is not available right now."
+        icon={AlertCircle}
+        title="Doctor not found"
+        tone="error"
+      >
+        <Link className={cn(buttonVariants({ variant: 'outline' }))} to="/patient/doctors">
+          Back to directory
+        </Link>
+      </StatePanel>
     )
   }
 
@@ -132,6 +141,7 @@ export function PatientDoctorDetailPage() {
                 </label>
                 <Input
                   id="appointment-date"
+                  min={getTodayIsoDate()}
                   onChange={(event) => {
                     setSelectedDate(event.target.value)
                     setSelectedTimeSlotId(null)
@@ -165,16 +175,24 @@ export function PatientDoctorDetailPage() {
                   ))}
                 </div>
               ) : slotsQuery.isError ? (
-                <div className="rounded-[1.4rem] border border-red-200 bg-red-50 px-4 py-4 text-sm leading-6 text-red-700">
-                  We could not load appointment times for this date. Please try again.
-                </div>
+                <StatePanel
+                  className="shadow-none"
+                  description="We could not load appointment times for this date. Please try again."
+                  icon={AlertCircle}
+                  title="Appointment times unavailable"
+                  tone="error"
+                >
+                  <Button onClick={() => slotsQuery.refetch()} type="button" variant="outline">
+                    Try again
+                  </Button>
+                </StatePanel>
               ) : slots.length === 0 ? (
-                <div className="rounded-[1.6rem] border border-dashed border-border bg-card/70 px-5 py-8 text-center">
-                  <p className="font-semibold text-foreground">No appointment times available</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Try a different date to see more appointment options.
-                  </p>
-                </div>
+                <StatePanel
+                  className="shadow-none"
+                  description="Try a different date to see more appointment options."
+                  icon={Clock3}
+                  title="No appointment times available"
+                />
               ) : (
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   {slots.map((slot) => (

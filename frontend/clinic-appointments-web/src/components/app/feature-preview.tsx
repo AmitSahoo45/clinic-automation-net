@@ -43,10 +43,8 @@ export function FeaturePreview({
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Card>
           <CardHeader>
-            <CardTitle>What this route is already wired for</CardTitle>
-            <CardDescription>
-              The shell is active now, and these are the APIs this screen will use next.
-            </CardDescription>
+            <CardTitle>Available services</CardTitle>
+            <CardDescription>These are the API endpoints connected to this page.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap gap-2">
@@ -73,10 +71,8 @@ export function FeaturePreview({
 
         <Card>
           <CardHeader>
-            <CardTitle>Current session state</CardTitle>
-            <CardDescription>
-              Task 1 is focused on bootstrap, restore, and route protection before the forms arrive.
-            </CardDescription>
+            <CardTitle>Current account</CardTitle>
+            <CardDescription>Review the account currently signed in to the portal.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {status === 'authenticated' && user ? (
@@ -86,18 +82,17 @@ export function FeaturePreview({
                     signed in
                   </p>
                   <p className="mt-2 font-semibold text-foreground">{user.email}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{user.role} workspace active</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{user.role} account active</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ArrowRight className="h-4 w-4 text-primary" />
-                  Refreshes now restore the browser session through <code>/api/auth/me</code>.
+                  Refreshing the page restores the signed-in account through <code>/api/auth/me</code>.
                 </div>
               </>
             ) : (
               <div className="rounded-2xl bg-muted/70 px-4 py-4">
                 <p className="text-sm leading-6 text-foreground">
-                  No browser session is active yet. Task 2 will connect the login and registration
-                  forms so users can create one from these screens.
+                  No account is signed in right now. Sign in or create an account to continue.
                 </p>
               </div>
             )}

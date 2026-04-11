@@ -14,91 +14,97 @@ import { PatientDoctorsPage } from '@/pages/patient/patient-doctors-page'
 import { LoginPage } from '@/pages/public/login-page'
 import { RegisterPage } from '@/pages/public/register-page'
 import { NotFoundPage } from '@/pages/shared/not-found-page'
+import { RouteErrorPage } from '@/pages/shared/route-error-page'
 
 export const appRouter = createBrowserRouter([
   {
-    path: '/',
-    element: <RootRedirect />,
-  },
-  {
-    element: <PublicOnlyRoute />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
-        element: <PublicLayout />,
-        children: [
-          {
-            path: '/login',
-            element: <LoginPage />,
-          },
-          {
-            path: '/register',
-            element: <RegisterPage />,
-          },
-        ],
+        path: '/',
+        element: <RootRedirect />,
       },
-    ],
-  },
-  {
-    element: <AuthenticatedRoute />,
-    children: [
       {
-        path: '/doctor',
-        element: <RoleRoute role="Doctor" />,
+        element: <PublicOnlyRoute />,
         children: [
           {
-            element: <DashboardLayout />,
+            element: <PublicLayout />,
             children: [
               {
-                index: true,
-                element: <Navigate replace to="profile" />,
+                path: '/login',
+                element: <LoginPage />,
               },
               {
-                path: 'profile',
-                element: <DoctorProfilePage />,
-              },
-              {
-                path: 'schedules',
-                element: <DoctorSchedulesPage />,
-              },
-              {
-                path: 'appointments',
-                element: <DoctorAppointmentsPage />,
+                path: '/register',
+                element: <RegisterPage />,
               },
             ],
           },
         ],
       },
       {
-        path: '/patient',
-        element: <RoleRoute role="Patient" />,
+        element: <AuthenticatedRoute />,
         children: [
           {
-            element: <DashboardLayout />,
+            path: '/doctor',
+            element: <RoleRoute role="Doctor" />,
             children: [
               {
-                index: true,
-                element: <Navigate replace to="doctors" />,
+                element: <DashboardLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate replace to="profile" />,
+                  },
+                  {
+                    path: 'profile',
+                    element: <DoctorProfilePage />,
+                  },
+                  {
+                    path: 'schedules',
+                    element: <DoctorSchedulesPage />,
+                  },
+                  {
+                    path: 'appointments',
+                    element: <DoctorAppointmentsPage />,
+                  },
+                ],
               },
+            ],
+          },
+          {
+            path: '/patient',
+            element: <RoleRoute role="Patient" />,
+            children: [
               {
-                path: 'doctors',
-                element: <PatientDoctorsPage />,
-              },
-              {
-                path: 'doctors/:doctorId',
-                element: <PatientDoctorDetailPage />,
-              },
-              {
-                path: 'appointments',
-                element: <PatientAppointmentsPage />,
+                element: <DashboardLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate replace to="doctors" />,
+                  },
+                  {
+                    path: 'doctors',
+                    element: <PatientDoctorsPage />,
+                  },
+                  {
+                    path: 'doctors/:doctorId',
+                    element: <PatientDoctorDetailPage />,
+                  },
+                  {
+                    path: 'appointments',
+                    element: <PatientAppointmentsPage />,
+                  },
+                ],
               },
             ],
           },
         ],
       },
+      {
+        path: '*',
+        element: <NotFoundPage />,
+      },
     ],
-  },
-  {
-    path: '*',
-    element: <NotFoundPage />,
   },
 ])

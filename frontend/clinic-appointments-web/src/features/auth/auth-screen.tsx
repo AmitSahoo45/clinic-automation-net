@@ -337,9 +337,9 @@ export function AuthScreen({ mode }: AuthScreenProps) {
     mode === 'login'
       ? {
           eyebrow: 'Welcome back',
-          title: 'Sign in to your clinic workspace',
+          title: 'Sign in to your clinic account',
           description:
-            'Choose whether you are logging in as a doctor or a patient, then continue into the correct workspace.',
+            'Choose whether you are signing in as a doctor or a patient, then continue to your account.',
           alternateLabel: "Don't have an account yet?",
           alternateAction: 'Create one',
           alternateTo: '/register',
@@ -356,7 +356,6 @@ export function AuthScreen({ mode }: AuthScreenProps) {
 
   const selectedRoleCard = roleCards[role]
   const RoleIcon = selectedRoleCard.icon
-  const attemptedPath = (location.state as RouteState | null)?.from?.pathname
   const errorMessage = mutation.isError
     ? getErrorMessage(mutation.error, 'We could not complete that request.')
     : null

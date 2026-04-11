@@ -109,7 +109,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     clearStoredAccessToken()
     setAccessToken(null)
     setSeedUser(null)
-    toast.success('Signed out of the clinic workspace.')
+    toast.success('Signed out successfully.')
   }
 
   return (

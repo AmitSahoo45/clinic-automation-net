@@ -15,15 +15,20 @@ export function formatCalendarDate(value: string) {
 }
 
 export function formatDisplayTime(value: string) {
-  return format(parse(value, 'HH:mm:ss', new Date()), 'h:mm a')
+  const timePattern = value.length === 5 ? 'HH:mm' : 'HH:mm:ss'
+  return format(parse(value, timePattern, new Date()), 'h:mm a')
 }
 
 export function formatDisplayDateTime(value: string) {
-  return format(parseISO(value), 'MMM d, yyyy • h:mm a')
+  return format(parseISO(value), "MMM d, yyyy 'at' h:mm a")
 }
 
 export function formatDisplayTimeRange(startTime: string, endTime: string) {
   return `${formatDisplayTime(startTime)} - ${formatDisplayTime(endTime)}`
+}
+
+export function formatAppointmentSummary(slotDate: string, startTime: string, endTime: string) {
+  return `${formatDisplayDate(slotDate)} | ${formatDisplayTimeRange(startTime, endTime)}`
 }
 
 export function normalizeAppointmentStatus(value: number | string): AppointmentStatus {

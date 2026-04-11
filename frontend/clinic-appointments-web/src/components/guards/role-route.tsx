@@ -12,7 +12,7 @@ export function RoleRoute({ role }: RoleRouteProps) {
   const { status, user } = useSession()
 
   if (status === 'checking') {
-    return <LoadingScreen message="Aligning your role-specific workspace." />
+    return <LoadingScreen message="Opening the right area of your account." />
   }
 
   if (status === 'anonymous' || !user) {

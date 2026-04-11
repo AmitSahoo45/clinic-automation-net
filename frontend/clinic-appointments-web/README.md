@@ -1,22 +1,21 @@
 # Clinic Appointments Web
 
-Phase 6 frontend lives here as a separate `React + Vite + TypeScript` app. It stays in the same repo as the .NET backend, but it is not part of the Visual Studio solution.
+This is the Phase 6 frontend for the Clinic Appointments project. It is a separate `React + Vite + TypeScript` app that lives in the same repository as the .NET backend.
 
-## Task 1 Status
+## Current Status
 
-Task 1 is implemented:
+The frontend currently includes:
 
-- Tailwind and shadcn-style UI foundation are wired
-- React Router route tree is in place
-- TanStack Query and toast providers are configured
-- JWT session restore is wired through `localStorage` + `GET /api/auth/me`
-- Public, authenticated, doctor-only, and patient-only guards are active
-- Shared public and dashboard shells are ready for the next slices
+- doctor and patient sign in and registration
+- protected routing with session restore through JWT + `/api/auth/me`
+- patient flows for doctor search, availability, booking, and appointment management
+- doctor flows for profile management, weekly schedules, and appointment review
+- shared loading, empty, error, and fallback states across the app
 
 ## Run Locally
 
 1. Start the backend API from Visual Studio or with `dotnet run` from the API project.
-2. If you are running the Visual Studio `https` profile, the frontend proxy should target `https://localhost:7145`.
+2. If you are running the Visual Studio `https` profile, keep the proxy target at `https://localhost:7145`.
 3. If you are running the API on a different local URL, copy `.env.example` to `.env.local` and update `VITE_API_PROXY_TARGET`.
 4. From this folder, run `npm install` if needed.
 5. Start the frontend with `npm run dev`.
@@ -41,12 +40,18 @@ Copy `.env.example` to `.env.local` if you want to override defaults.
 - `/patient/doctors/:doctorId`
 - `/patient/appointments`
 
-## Temporary Task 1 Testing
+## Suggested Test Flows
 
-Until Task 2 adds the real login/register forms, you can test session restore by placing a valid JWT from Postman into browser local storage with the key:
+Patient flow:
+- sign in as a patient
+- browse doctors and filter by specialization
+- open a doctor profile
+- choose a date and book an appointment
+- review and cancel the booking from `/patient/appointments`
 
-```text
-clinic-appointments.access-token
-```
-
-Then refresh the page. The frontend will call `/api/auth/me` and redirect into the correct role workspace.
+Doctor flow:
+- sign in as a doctor
+- update profile details
+- add or edit schedule entries for a Monday-start week
+- review bookings from `/doctor/appointments`
+- cancel an appointment and confirm the slot becomes available again

@@ -7,7 +7,7 @@ export function PublicOnlyRoute() {
   const { status, user } = useSession()
 
   if (status === 'checking') {
-    return <LoadingScreen message="Recovering the last signed-in workspace before showing public routes." />
+    return <LoadingScreen message="Checking your account before showing sign-in pages." />
   }
 
   if (status === 'authenticated' && user) {

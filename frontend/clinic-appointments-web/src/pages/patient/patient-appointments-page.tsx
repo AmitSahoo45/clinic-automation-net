@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarClock, CircleCheckBig, NotebookPen } from 'lucide-react'
+import { AlertCircle, CalendarClock, CircleCheckBig, NotebookPen } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { StatePanel } from '@/components/app/state-panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -9,9 +10,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cancelAppointment, getPatientAppointments } from '@/features/patient/patient-api'
 import { getErrorMessage } from '@/lib/api/api-error'
 import {
-  formatDisplayDate,
+  formatAppointmentSummary,
   formatDisplayDateTime,
-  formatDisplayTimeRange,
   type AppointmentStatus,
 } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
@@ -74,34 +74,28 @@ export function PatientAppointmentsPage() {
       </div>
 
       {appointmentsQuery.isLoading ? (
-        <Card>
-          <CardContent className="p-10 text-center text-muted-foreground">
-            Loading your appointments...
-          </CardContent>
-        </Card>
+        <StatePanel description="Loading your upcoming and past appointments." loading title="Loading appointments" />
       ) : appointmentsQuery.isError ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-6 text-sm leading-7 text-red-700">
-            We could not load your appointments right now. Please try again.
-          </CardContent>
-        </Card>
+        <StatePanel
+          description="We could not load your appointments right now. Please try again."
+          icon={AlertCircle}
+          title="Appointments unavailable"
+          tone="error"
+        >
+          <Button onClick={() => appointmentsQuery.refetch()} type="button" variant="outline">
+            Try again
+          </Button>
+        </StatePanel>
       ) : appointments.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-muted text-muted-foreground">
-              <CalendarClock className="h-5 w-5" />
-            </div>
-            <div className="space-y-2">
-              <p className="font-serif text-3xl text-foreground">No appointments yet</p>
-              <p className="max-w-xl text-sm leading-7 text-muted-foreground">
-                When you book a doctor visit, it will appear here for easy reference.
-              </p>
-            </div>
-            <Link className={cn(buttonVariants())} to="/patient/doctors">
-              Browse doctors
-            </Link>
-          </CardContent>
-        </Card>
+        <StatePanel
+          description="When you book a doctor visit, it will appear here for easy reference."
+          icon={CalendarClock}
+          title="No appointments yet"
+        >
+          <Link className={cn(buttonVariants())} to="/patient/doctors">
+            Browse doctors
+          </Link>
+        </StatePanel>
       ) : (
         <div className="space-y-8">
           {activeAppointments.length > 0 ? (
@@ -125,8 +119,11 @@ export function PatientAppointmentsPage() {
                             </Badge>
                             <p className="font-serif text-3xl text-foreground">{appointment.doctorName}</p>
                             <p className="text-sm leading-7 text-muted-foreground">
-                              {formatDisplayDate(appointment.slotDate)} •{' '}
-                              {formatDisplayTimeRange(appointment.startTime, appointment.endTime)}
+                              {formatAppointmentSummary(
+                                appointment.slotDate,
+                                appointment.startTime,
+                                appointment.endTime,
+                              )}
                             </p>
                           </div>
 
@@ -187,8 +184,11 @@ export function PatientAppointmentsPage() {
                           </Badge>
                           <p className="font-semibold text-foreground">{appointment.doctorName}</p>
                           <p className="text-sm leading-7 text-muted-foreground">
-                            {formatDisplayDate(appointment.slotDate)} •{' '}
-                            {formatDisplayTimeRange(appointment.startTime, appointment.endTime)}
+                            {formatAppointmentSummary(
+                              appointment.slotDate,
+                              appointment.startTime,
+                              appointment.endTime,
+                            )}
                           </p>
                         </div>
                       </CardContent>

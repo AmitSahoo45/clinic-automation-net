@@ -1,7 +1,8 @@
 import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Search, Stethoscope } from 'lucide-react'
+import { AlertCircle, ArrowRight, Search, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { StatePanel } from '@/components/app/state-panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -23,7 +24,7 @@ export function PatientDoctorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-border/80 bg-card/80 p-6 shadow-[0_18px_60px_rgba(22,56,54,0.08)] md:p-7 xl:flex-row xl:items-end xl:justify-between">
+      <div className="flex flex-col gap-4 rounded-4xl border border-border/80 bg-card/80 p-6 shadow-[0_18px_60px_rgba(22,56,54,0.08)] md:p-7 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
           <Badge variant="patient">Find a doctor</Badge>
           <div className="space-y-2">
@@ -66,25 +67,32 @@ export function PatientDoctorsPage() {
           ))}
         </div>
       ) : doctorsQuery.isError ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-6 text-sm leading-7 text-red-700">
-            We could not load the doctor directory right now. Please try again in a moment.
-          </CardContent>
-        </Card>
+        <StatePanel
+          description="We could not load the doctor directory right now. Please try again in a moment."
+          icon={AlertCircle}
+          title="Doctor directory unavailable"
+          tone="error"
+        >
+          <Button onClick={() => doctorsQuery.refetch()} type="button" variant="outline">
+            Try again
+          </Button>
+        </StatePanel>
       ) : doctors.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-muted text-muted-foreground">
-              <Stethoscope className="h-5 w-5" />
-            </div>
-            <div className="space-y-2">
-              <p className="font-serif text-3xl text-foreground">No doctors matched that search.</p>
-              <p className="max-w-xl text-sm leading-7 text-muted-foreground">
-                Try a broader specialty name or clear the filter to view all available doctors.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatePanel
+          description={
+            deferredSpecialization
+              ? 'Try a broader specialty name or clear the filter to view all available doctors.'
+              : 'There are no doctors available to browse right now. Please check back soon.'
+          }
+          icon={Stethoscope}
+          title={deferredSpecialization ? 'No doctors matched that search' : 'No doctors available'}
+        >
+          {deferredSpecialization ? (
+            <Button onClick={() => setSpecializationInput('')} type="button" variant="outline">
+              Clear search
+            </Button>
+          ) : null}
+        </StatePanel>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {doctors.map((doctor) => (

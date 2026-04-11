@@ -7,7 +7,7 @@ export function RootRedirect() {
   const { status, user } = useSession()
 
   if (status === 'checking') {
-    return <LoadingScreen message="Deciding whether to send you to public auth pages or your workspace." />
+    return <LoadingScreen message="Checking whether to open your account or the sign-in page." />
   }
 
   if (user) {

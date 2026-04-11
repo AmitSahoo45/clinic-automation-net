@@ -7,7 +7,7 @@ export function AuthenticatedRoute() {
   const { status } = useSession()
 
   if (status === 'checking') {
-    return <LoadingScreen message="Checking your token and recovering the last signed-in identity." />
+    return <LoadingScreen message="Checking your sign-in and restoring your account." />
   }
 
   if (status === 'anonymous') {

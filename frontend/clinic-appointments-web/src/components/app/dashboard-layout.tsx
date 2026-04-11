@@ -1,6 +1,7 @@
-import { CalendarDays, LayoutDashboard, LogOut, Stethoscope } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { AlertCircle, CalendarDays, LayoutDashboard, LogOut, Stethoscope } from 'lucide-react'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { BrandMark } from '@/components/app/brand-mark'
+import { StatePanel } from '@/components/app/state-panel'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,22 @@ export function DashboardLayout() {
   const { signOut, user } = useSession()
 
   if (!user) {
-    return null
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-2xl">
+          <StatePanel
+            description="Your session is not available right now. Please sign in again to continue."
+            icon={AlertCircle}
+            title="Please sign in to continue"
+            tone="warning"
+          >
+            <Link className={cn(buttonVariants())} to="/login">
+              Go to sign in
+            </Link>
+          </StatePanel>
+        </div>
+      </div>
+    )
   }
 
   const navigation = user.role === 'Doctor' ? doctorNavigation : patientNavigation
@@ -30,8 +46,8 @@ export function DashboardLayout() {
 
   return (
     <div className="min-h-screen px-4 py-4 lg:px-8 lg:py-6">
-      <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[290px_1fr]">
-        <aside className="rounded-4xl bg-[linear-gradient(180deg,#123d3a,#0f2b3f)] p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.2)]">
+      <div className="mx-auto grid max-w-[1560px] gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="rounded-4xl bg-[linear-gradient(180deg,#123d3a,#0f2b3f)] p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.2)] lg:sticky lg:top-6 lg:self-start">
           <div className="flex h-full flex-col gap-8">
             <BrandMark compact />
 
@@ -42,11 +58,11 @@ export function DashboardLayout() {
               <p className="mt-4 text-sm uppercase tracking-[0.24em] text-white/60">signed in as</p>
               <p className="mt-2 text-sm font-semibold text-white break-all">{user.email}</p>
               <p className="mt-2 text-sm leading-6 text-white/72">
-                Move between appointments, schedules, and account details from one secure clinic portal.
+                Review appointments, schedules, and account details from one secure clinic portal.
               </p>
             </div>
 
-            <nav className="grid gap-2">
+            <nav className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
               {navigation.map(({ to, label, icon: Icon }) => (
                 <NavLink
                   className={({ isActive }) =>
@@ -71,19 +87,19 @@ export function DashboardLayout() {
           </div>
         </aside>
 
-        <main className="rounded-4xl border border-border/80 bg-card/90 p-5 shadow-[0_24px_80px_rgba(22,56,54,0.14)] backdrop-blur md:p-7">
+        <main className="min-w-0 rounded-4xl border border-border/80 bg-card/90 p-5 shadow-[0_24px_80px_rgba(22,56,54,0.14)] backdrop-blur md:p-7">
           <div className="flex flex-col gap-4 border-b border-border/80 pb-5 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <p className="text-sm uppercase tracking-[0.28em] text-muted-foreground">
-                {user.role === 'Doctor' ? 'doctor workspace' : 'patient workspace'}
+                {user.role === 'Doctor' ? 'doctor account' : 'patient account'}
               </p>
-              <h1 className="font-serif text-3xl tracking-tight text-foreground md:text-4xl">
+              <h1 className="font-serif text-2xl tracking-tight text-foreground sm:text-3xl md:text-4xl">
                 {user.role === 'Doctor'
-                  ? 'Manage your day with clarity'
-                  : 'Plan and manage your visits'}
+                  ? 'Manage your clinic schedule'
+                  : 'Plan your next visit'}
               </h1>
             </div>
-            <Button className="self-start" onClick={signOut} variant="outline">
+            <Button className="w-full self-start sm:w-auto" onClick={signOut} variant="outline">
               <LogOut className="h-4 w-4" />
               Log out
             </Button>
