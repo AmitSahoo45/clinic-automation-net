@@ -1,6 +1,7 @@
 using System.Text;
 using ClinicAppointments.Api.Auth;
 using ClinicAppointments.Api.Configuration;
+using ClinicAppointments.Api.Doctors;
 using ClinicAppointments.Api.Security;
 using ClinicAppointments.Core.Enums;
 using ClinicAppointments.Infrastructure.Persistence;
@@ -28,6 +29,9 @@ builder.Services.AddSingleton(jwtOptions);
 builder.Services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDoctorDirectoryService, DoctorDirectoryService>();
+builder.Services.AddScoped<IDoctorProfileService, DoctorProfileService>();
+builder.Services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

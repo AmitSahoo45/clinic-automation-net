@@ -12,6 +12,10 @@ public class DoctorScheduleConfiguration : IEntityTypeConfiguration<DoctorSchedu
 
         builder.HasKey(schedule => schedule.Id);
 
+        builder.Property(schedule => schedule.WeekStartDate)
+            .HasColumnType("date")
+            .IsRequired();
+
         builder.Property(schedule => schedule.DayOfWeek)
             .HasConversion<int>()
             .IsRequired();
@@ -37,9 +41,8 @@ public class DoctorScheduleConfiguration : IEntityTypeConfiguration<DoctorSchedu
         builder.HasIndex(schedule => new
         {
             schedule.DoctorId,
-            schedule.DayOfWeek,
-            schedule.StartTime,
-            schedule.EndTime
+            schedule.WeekStartDate,
+            schedule.DayOfWeek
         }).IsUnique();
     }
 }

@@ -7,6 +7,8 @@ public class DoctorSchedule : BaseEntity
 {
     public Guid DoctorId { get; set; }
 
+    public DateOnly WeekStartDate { get; set; }
+
     public ClinicDayOfWeek DayOfWeek { get; set; }
 
     public TimeOnly StartTime { get; set; }
