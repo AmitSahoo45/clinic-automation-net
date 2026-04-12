@@ -32,6 +32,10 @@ public class DoctorScheduleConfiguration : IEntityTypeConfiguration<DoctorSchedu
             .HasDefaultValue(true)
             .IsRequired();
 
+        builder.Property(schedule => schedule.IsDeleted)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(schedule => schedule.CreatedAtUtc)
             .IsRequired();
 
@@ -43,6 +47,8 @@ public class DoctorScheduleConfiguration : IEntityTypeConfiguration<DoctorSchedu
             schedule.DoctorId,
             schedule.WeekStartDate,
             schedule.DayOfWeek
-        }).IsUnique();
+        })
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }

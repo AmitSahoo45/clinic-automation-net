@@ -17,6 +17,8 @@ public class DoctorSchedule : BaseEntity
 
     public bool IsAvailable { get; set; } = true;
 
+    public bool IsDeleted { get; set; }
+
     public Doctor? Doctor { get; set; }
 
     public ICollection<TimeSlot> TimeSlots { get; set; } = [];

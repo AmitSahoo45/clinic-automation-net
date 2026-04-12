@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { format, parseISO, startOfWeek } from 'date-fns'
+import { addDays, format, parseISO, startOfWeek } from 'date-fns'
 import { AlertCircle, CalendarDays, Clock3, PencilLine, Trash2 } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { StatePanel } from '@/components/app/state-panel'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +22,7 @@ import {
   doctorScheduleSchema,
 } from '@/features/doctor/doctor-schemas'
 import { getErrorMessage } from '@/lib/api/api-error'
-import { formatCalendarDate, formatDisplayTimeRange, getTodayIsoDate } from '@/lib/formatters'
+import { formatDisplayTimeRange, getTodayIsoDate } from '@/lib/formatters'
 import { cn } from '@/lib/utils'
 
 const dayOptions = [
@@ -41,6 +41,24 @@ function normalizeToWeekStart(dateValue: string) {
 
 function getCurrentWeekStart() {
   return normalizeToWeekStart(getTodayIsoDate())
+}
+
+function getScheduleDate(weekStartDate: string, dayOfWeek: number) {
+  return addDays(parseISO(weekStartDate), dayOfWeek - 1)
+}
+
+function formatWeekRange(weekStartDate: string) {
+  const weekStart = parseISO(weekStartDate)
+  const weekEnd = addDays(weekStart, 6)
+  return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`
+}
+
+function formatScheduleDateLabel(weekStartDate: string, dayOfWeek: number) {
+  return format(getScheduleDate(weekStartDate, dayOfWeek), 'EEEE, MMM d, yyyy')
+}
+
+function formatScheduleDateShort(weekStartDate: string, dayOfWeek: number) {
+  return format(getScheduleDate(weekStartDate, dayOfWeek), 'MMMM d, yyyy')
 }
 
 function ScheduleField({
@@ -147,7 +165,10 @@ export function DoctorSchedulesPage() {
   })
 
   const schedules = schedulesQuery.data ?? []
+  const sortedSchedules = [...schedules].sort((left, right) => left.dayOfWeek - right.dayOfWeek)
   const isSubmitting = createMutation.isPending || updateMutation.isPending
+  const selectedDay = useWatch({ control: form.control, name: 'dayOfWeek' })
+  const selectedFormWeek = useWatch({ control: form.control, name: 'weekStartDate' }) || selectedWeekStart
 
   return (
     <div className="space-y-6">
@@ -156,18 +177,17 @@ export function DoctorSchedulesPage() {
           <Badge variant="doctor">Weekly availability</Badge>
           <div className="space-y-2">
             <h2 className="font-serif text-4xl leading-tight tracking-tight text-foreground">
-              Set your appointment hours for each week.
+              Set appointment hours for {formatWeekRange(selectedWeekStart)}.
             </h2>
             <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-              Choose a Monday-start week, add availability by day, and keep your booking calendar
-              current.
+              Choose the week once, then add the days and times you want to open for appointments.
             </p>
           </div>
         </div>
 
-        <div className="w-full max-w-[240px] space-y-2">
+        <div className="w-full max-w-[260px] space-y-2">
           <label className="text-sm font-semibold text-foreground" htmlFor="week-start">
-            Week starting
+            Select week
           </label>
           <Input
             id="week-start"
@@ -179,6 +199,9 @@ export function DoctorSchedulesPage() {
             type="date"
             value={selectedWeekStart}
           />
+          <p className="text-xs leading-5 text-muted-foreground">
+            The calendar below is organized automatically from Monday to Sunday.
+          </p>
         </div>
       </div>
 
@@ -187,9 +210,9 @@ export function DoctorSchedulesPage() {
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle>{editingSchedule ? 'Edit schedule entry' : 'Add schedule entry'}</CardTitle>
+                <CardTitle>{editingSchedule ? 'Edit appointment hours' : 'Add appointment hours'}</CardTitle>
                 <CardDescription>
-                  One entry is allowed for each day in the selected week.
+                  Choose the day and time you want to make available in the selected week.
                 </CardDescription>
               </div>
               {editingSchedule ? (
@@ -215,26 +238,32 @@ export function DoctorSchedulesPage() {
                 createMutation.mutate(values)
               })}
             >
-              <div className="grid gap-4 md:grid-cols-2">
-                <ScheduleField error={form.formState.errors.weekStartDate?.message} label="Week start">
-                  <Input type="date" {...form.register('weekStartDate')} />
-                </ScheduleField>
+              <input type="hidden" {...form.register('weekStartDate')} />
 
-                <ScheduleField error={form.formState.errors.dayOfWeek?.message} label="Day">
-                  <select
-                    className={cn(
-                      'flex h-11 w-full rounded-2xl border border-input bg-card px-4 py-2 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
-                    )}
-                    {...form.register('dayOfWeek', { valueAsNumber: true })}
-                  >
-                    {dayOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </ScheduleField>
+              <div className="rounded-[1.5rem] bg-muted/70 px-4 py-4">
+                <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">Selected date</p>
+                <p className="mt-2 font-serif text-2xl text-foreground">
+                  {formatScheduleDateLabel(selectedFormWeek, selectedDay || 1)}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Appointments booked on this day will appear under the selected week.
+                </p>
               </div>
+
+              <ScheduleField error={form.formState.errors.dayOfWeek?.message} label="Day">
+                <select
+                  className={cn(
+                    'flex h-11 w-full rounded-2xl border border-input bg-card px-4 py-2 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+                  )}
+                  {...form.register('dayOfWeek', { valueAsNumber: true })}
+                >
+                  {dayOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </ScheduleField>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <ScheduleField error={form.formState.errors.startTime?.message} label="Start time">
@@ -278,8 +307,8 @@ export function DoctorSchedulesPage() {
 
         <Card className="border-border/80">
           <CardHeader>
-            <CardTitle>{formatCalendarDate(selectedWeekStart)}</CardTitle>
-            <CardDescription>Schedule entries for the selected week.</CardDescription>
+            <CardTitle>{formatWeekRange(selectedWeekStart)}</CardTitle>
+            <CardDescription>Appointment hours for the selected week.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {schedulesQuery.isLoading ? (
@@ -309,7 +338,7 @@ export function DoctorSchedulesPage() {
                 title="No schedule entries for this week"
               />
             ) : (
-              schedules.map((schedule) => (
+              sortedSchedules.map((schedule) => (
                 <div
                   className="rounded-[1.6rem] border border-border/80 bg-card px-5 py-5 shadow-[0_14px_32px_rgba(22,56,54,0.06)]"
                   key={schedule.id}
@@ -330,7 +359,7 @@ export function DoctorSchedulesPage() {
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Clock3 className="h-4 w-4" />
-                          <span>{formatCalendarDate(schedule.weekStartDate)}</span>
+                          <span>{formatScheduleDateShort(schedule.weekStartDate, schedule.dayOfWeek)}</span>
                         </div>
                       </div>
                     </div>
@@ -362,11 +391,14 @@ export function DoctorSchedulesPage() {
             <div className="rounded-[1.5rem] bg-muted/70 px-4 py-4">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" />
-                <p className="font-semibold text-foreground">Week rules</p>
+                <p className="font-semibold text-foreground">How scheduling works</p>
               </div>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                The selected week starts on Monday, and only one entry can be saved for each day in
-                that week.
+                Select the week once, then add one availability entry for each day you want to open.
+              </p>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                If you shorten hours or remove a day, any appointments outside the updated time range
+                are cancelled automatically.
               </p>
             </div>
           </CardContent>

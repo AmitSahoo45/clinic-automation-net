@@ -1,6 +1,8 @@
 using ClinicAppointments.Api.Common;
 using ClinicAppointments.Core.DTOs.Schedules;
 using ClinicAppointments.Core.Entities;
+using AppointmentState = ClinicAppointments.Core.Enums.AppointmentStatus;
+using ClinicDayOfWeek = ClinicAppointments.Core.Enums.DayOfWeek;
 using ClinicAppointments.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +20,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
 
         var exists = await dbContext.DoctorSchedules.AnyAsync(
             item => item.DoctorId == doctorId
+                && !item.IsDeleted
                 && item.WeekStartDate == request.WeekStartDate
                 && item.DayOfWeek == request.DayOfWeek,
             cancellationToken);
@@ -47,7 +50,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
     {
         var query = dbContext.DoctorSchedules
             .AsNoTracking()
-            .Where(item => item.DoctorId == doctorId);
+            .Where(item => item.DoctorId == doctorId && !item.IsDeleted);
 
         if (weekStartDate.HasValue)
         {
@@ -71,7 +74,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
         }
 
         var schedule = await dbContext.DoctorSchedules.SingleOrDefaultAsync(
-            item => item.Id == scheduleId && item.DoctorId == doctorId,
+            item => item.Id == scheduleId && item.DoctorId == doctorId && !item.IsDeleted,
             cancellationToken);
 
         if (schedule is null)
@@ -82,6 +85,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
         var duplicate = await dbContext.DoctorSchedules.AnyAsync(
             item => item.Id != scheduleId
                 && item.DoctorId == doctorId
+                && !item.IsDeleted
                 && item.WeekStartDate == request.WeekStartDate
                 && item.DayOfWeek == request.DayOfWeek,
             cancellationToken);
@@ -91,6 +95,17 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
             return DoctorScheduleCommandResult.Conflict("Another schedule entry for this week and day already exists.");
         }
 
+        var existingSlots = await dbContext.TimeSlots
+            .Where(item => item.DoctorScheduleId == schedule.Id)
+            .Include(item => item.Appointments)
+            .ToListAsync(cancellationToken);
+
+        var impactedSlots = GetImpactedSlots(existingSlots, request);
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        CancelAppointmentsAndCleanupSlots(impactedSlots);
+
         schedule.WeekStartDate = request.WeekStartDate;
         schedule.DayOfWeek = request.DayOfWeek;
         schedule.StartTime = request.StartTime;
@@ -98,6 +113,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
         schedule.IsAvailable = request.IsAvailable;
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return DoctorScheduleCommandResult.Success(MapToResponse(schedule));
     }
@@ -105,7 +121,7 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
     public async Task<OperationResult> DeleteScheduleAsync(Guid doctorId, Guid scheduleId, CancellationToken cancellationToken = default)
     {
         var schedule = await dbContext.DoctorSchedules.SingleOrDefaultAsync(
-            item => item.Id == scheduleId && item.DoctorId == doctorId,
+            item => item.Id == scheduleId && item.DoctorId == doctorId && !item.IsDeleted,
             cancellationToken);
 
         if (schedule is null)
@@ -113,10 +129,62 @@ public sealed class DoctorScheduleService(ApplicationDbContext dbContext) : IDoc
             return OperationResult.NotFound("Schedule entry was not found.");
         }
 
-        dbContext.DoctorSchedules.Remove(schedule);
+        var existingSlots = await dbContext.TimeSlots
+            .Where(item => item.DoctorScheduleId == schedule.Id)
+            .Include(item => item.Appointments)
+            .ToListAsync(cancellationToken);
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        CancelAppointmentsAndCleanupSlots(existingSlots);
+
+        schedule.IsAvailable = false;
+        schedule.IsDeleted = true;
+
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return OperationResult.Success();
+    }
+
+    private static DateOnly GetScheduledDate(DateOnly weekStartDate, ClinicDayOfWeek dayOfWeek) =>
+        weekStartDate.AddDays((int)dayOfWeek - 1);
+
+    private static List<TimeSlot> GetImpactedSlots(IEnumerable<TimeSlot> existingSlots, DoctorScheduleRequestDto request)
+    {
+        if (!request.IsAvailable)
+        {
+            return existingSlots.ToList();
+        }
+
+        var scheduledDate = GetScheduledDate(request.WeekStartDate, request.DayOfWeek);
+
+        return existingSlots
+            .Where(item =>
+                item.SlotDate != scheduledDate
+                || item.StartTime < request.StartTime
+                || item.EndTime > request.EndTime)
+            .ToList();
+    }
+
+    private void CancelAppointmentsAndCleanupSlots(IEnumerable<TimeSlot> slots)
+    {
+        foreach (var slot in slots)
+        {
+            foreach (var appointment in slot.Appointments.Where(item =>
+                         item.Status != AppointmentState.Cancelled
+                         && item.Status != AppointmentState.Completed))
+            {
+                appointment.Status = AppointmentState.Cancelled;
+            }
+
+            slot.IsBooked = slot.Appointments.Any(item => item.Status != AppointmentState.Cancelled);
+
+            if (slot.Appointments.Count == 0)
+            {
+                dbContext.TimeSlots.Remove(slot);
+            }
+        }
     }
 
     private static string? ValidateRequest(DoctorScheduleRequestDto request)

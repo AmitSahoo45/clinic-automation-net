@@ -45,6 +45,7 @@ public sealed class DoctorAvailabilityService(ApplicationDbContext dbContext) : 
         var schedules = await dbContext.DoctorSchedules
             .AsNoTracking()
             .Where(item => item.DoctorId == doctorId
+                && !item.IsDeleted
                 && item.IsAvailable
                 && weekStartDates.Contains(item.WeekStartDate))
             .ToListAsync(cancellationToken);
