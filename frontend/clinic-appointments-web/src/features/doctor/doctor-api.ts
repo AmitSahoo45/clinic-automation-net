@@ -254,3 +254,15 @@ export async function cancelDoctorAppointment(appointmentId: string) {
 
   return parseDoctorAppointment(payload)
 }
+
+export async function completeDoctorAppointment(appointmentId: string) {
+  const payload = await apiClient<unknown>(`/appointments/${appointmentId}/complete`, {
+    method: 'PUT',
+  })
+
+  if (!isRecord(payload)) {
+    throw new Error('The completion response was not in the expected format.')
+  }
+
+  return parseDoctorAppointment(payload)
+}

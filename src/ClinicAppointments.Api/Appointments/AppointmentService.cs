@@ -99,6 +99,11 @@ public sealed class AppointmentService(ApplicationDbContext dbContext) : IAppoin
             return AppointmentCommandResult.Conflict("This appointment is already cancelled.");
         }
 
+        if (appointment.Status == AppointmentStatus.Completed)
+        {
+            return AppointmentCommandResult.Conflict("Completed appointments cannot be cancelled.");
+        }
+
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         appointment.Status = AppointmentStatus.Cancelled;
@@ -110,6 +115,40 @@ public sealed class AppointmentService(ApplicationDbContext dbContext) : IAppoin
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+
+        return AppointmentCommandResult.Success(MapToResponse(appointment));
+    }
+
+    public async Task<AppointmentCommandResult> CompleteAppointmentAsync(Guid appointmentId, Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        var appointment = await dbContext.Appointments
+            .Include(item => item.TimeSlot)
+            .Include(item => item.Doctor)
+            .Include(item => item.Patient)
+            .SingleOrDefaultAsync(item => item.Id == appointmentId, cancellationToken);
+
+        if (appointment is null)
+        {
+            return AppointmentCommandResult.NotFound("Appointment was not found.");
+        }
+
+        if (appointment.DoctorId != doctorId)
+        {
+            return AppointmentCommandResult.Forbidden("You are not allowed to complete this appointment.");
+        }
+
+        if (appointment.Status == AppointmentStatus.Cancelled)
+        {
+            return AppointmentCommandResult.Conflict("Cancelled appointments cannot be marked as completed.");
+        }
+
+        if (appointment.Status == AppointmentStatus.Completed)
+        {
+            return AppointmentCommandResult.Conflict("This appointment is already completed.");
+        }
+
+        appointment.Status = AppointmentStatus.Completed;
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return AppointmentCommandResult.Success(MapToResponse(appointment));
     }

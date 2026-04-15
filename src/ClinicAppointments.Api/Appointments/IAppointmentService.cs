@@ -9,6 +9,8 @@ public interface IAppointmentService
 
     Task<AppointmentCommandResult> CancelAppointmentAsync(Guid appointmentId, Guid userId, UserRole userRole, CancellationToken cancellationToken = default);
 
+    Task<AppointmentCommandResult> CompleteAppointmentAsync(Guid appointmentId, Guid doctorId, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<AppointmentResponseDto>> GetPatientAppointmentsAsync(Guid patientId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<AppointmentResponseDto>> GetDoctorAppointmentsAsync(Guid doctorId, CancellationToken cancellationToken = default);

@@ -42,6 +42,20 @@ public sealed class AppointmentsController(IAppointmentService appointmentServic
         return ToActionResult(result);
     }
 
+    [Authorize(Policy = AuthorizationPolicies.DoctorOnly)]
+    [HttpPut("{appointmentId:guid}/complete")]
+    public async Task<IActionResult> CompleteAppointment(Guid appointmentId, CancellationToken cancellationToken)
+    {
+        var doctorId = GetCurrentUserId();
+        if (doctorId is null)
+        {
+            return Unauthorized(new { Message = "Doctor identity was not found in the token." });
+        }
+
+        var result = await appointmentService.CompleteAppointmentAsync(appointmentId, doctorId.Value, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [Authorize(Policy = AuthorizationPolicies.PatientOnly)]
     [HttpGet("patient/me")]
     public async Task<IActionResult> GetMyPatientAppointments(CancellationToken cancellationToken)

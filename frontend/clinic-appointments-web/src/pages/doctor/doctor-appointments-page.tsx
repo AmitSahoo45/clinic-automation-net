@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   cancelDoctorAppointment,
+  completeDoctorAppointment,
   getDoctorAppointments,
 } from '@/features/doctor/doctor-api'
 import { getErrorMessage } from '@/lib/api/api-error'
@@ -47,6 +48,18 @@ export function DoctorAppointmentsPage() {
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, 'We could not cancel this appointment.'))
+    },
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: (appointmentId: string) => completeDoctorAppointment(appointmentId),
+    onSuccess: async () => {
+      toast.success('The appointment has been marked as completed.')
+      await queryClient.invalidateQueries({ queryKey: ['doctor', 'appointments'] })
+      await queryClient.invalidateQueries({ queryKey: ['patient', 'appointments'] })
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, 'We could not mark this appointment as completed.'))
     },
   })
 
@@ -124,7 +137,20 @@ export function DoctorAppointmentsPage() {
                             disabled={
                               appointment.status === 'Cancelled' ||
                               appointment.status === 'Completed' ||
-                              cancelMutation.isPending
+                              completeMutation.isPending
+                            }
+                            onClick={() => completeMutation.mutate(appointment.id)}
+                            type="button"
+                            variant="outline"
+                          >
+                            Mark as completed
+                          </Button>
+                          <Button
+                            disabled={
+                              appointment.status === 'Cancelled' ||
+                              appointment.status === 'Completed' ||
+                              cancelMutation.isPending ||
+                              completeMutation.isPending
                             }
                             onClick={() => cancelMutation.mutate(appointment.id)}
                             type="button"
